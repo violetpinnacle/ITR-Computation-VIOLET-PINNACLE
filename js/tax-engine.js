@@ -1,10 +1,8 @@
 // Tax engine for ITR-1 — AY 2026-27
-// Implements slab calculation, rebate u/s 87A, and cess
-// following the CBDT Validation Rules for ITR-1 AY 2026-27.
-
-// --- Slab rates ---
-// NOTE: Verify these against the latest official slab notification
-// for AY 2026-27 before relying on this for real filings.
+// Slab rates per Finance Act 2025 (Section 115BAC for new regime).
+// Old regime slabs unchanged from prior years.
+// Source verified: legalclarity.org/indian-income-tax-slabs-new-and-old-regime-rates
+// Always cross-check against official incometax.gov.in notification before real filing use.
 
 function calcSlabTaxOldRegime(totalIncome) {
   let tax = 0;
@@ -21,14 +19,14 @@ function calcSlabTaxOldRegime(totalIncome) {
 }
 
 function calcSlabTaxNewRegime(totalIncome) {
-  // New regime slabs (post Budget changes) — verify against
-  // official notification for the exact AY you're supporting.
+  // AY 2026-27 new regime — 7 slabs, basic exemption raised to Rs.4,00,000
   const slabs = [
-    { upto: 300000, rate: 0 },
-    { upto: 700000, rate: 0.05 },
-    { upto: 1000000, rate: 0.10 },
-    { upto: 1200000, rate: 0.15 },
-    { upto: 1500000, rate: 0.20 },
+    { upto: 400000,  rate: 0 },
+    { upto: 800000,  rate: 0.05 },
+    { upto: 1200000, rate: 0.10 },
+    { upto: 1600000, rate: 0.15 },
+    { upto: 2000000, rate: 0.20 },
+    { upto: 2400000, rate: 0.25 },
     { upto: Infinity, rate: 0.30 }
   ];
   let tax = 0;
@@ -45,7 +43,7 @@ function calcSlabTaxNewRegime(totalIncome) {
   return Math.round(tax);
 }
 
-// Rule 23 / 191 / 192: Rebate u/s 87A
+// Rebate u/s 87A
 function calcRebate87A(totalIncome, taxBeforeRebate, oldRegime) {
   if (oldRegime) {
     // Old regime: rebate up to Rs.12,500 if total income <= 5,00,000
@@ -54,15 +52,20 @@ function calcRebate87A(totalIncome, taxBeforeRebate, oldRegime) {
     }
     return 0;
   } else {
-    // New regime: full rebate if total income <= 12,70,590 (per rule 191)
-    if (totalIncome <= 1270590) {
-      return Math.min(taxBeforeRebate, taxBeforeRebate); // full rebate up to tax payable
+    // New regime AY 2026-27: rebate up to Rs.60,000 if total income <= 12,00,000
+    if (totalIncome <= 1200000) {
+      return Math.min(taxBeforeRebate, 60000);
+    }
+    // Marginal relief zone: income between 12,00,001 and ~12,75,000
+    // Tax payable cannot exceed (income - 12,00,000)
+    if (totalIncome > 1200000 && taxBeforeRebate > (totalIncome - 1200000)) {
+      return taxBeforeRebate - (totalIncome - 1200000);
     }
     return 0;
   }
 }
 
-// Rule 26: Cess = 4% of (Tax after Rebate)
+// Cess = 4% of (Tax after Rebate)
 function calcCess(taxAfterRebate) {
   return Math.round(taxAfterRebate * 0.04);
 }
@@ -97,4 +100,7 @@ function computeTaxITR1(parsed) {
     netTaxLiability,
     totalTaxPlusInterest,
     totalTaxesPaid,
-    refundDue: refundOrPayable > 0 ?
+    refundDue: refundOrPayable > 0 ? refundOrPayable : 0,
+    balancePayable: refundOrPayable < 0 ? Math.abs(refundOrPayable) : 0
+  };
+}
