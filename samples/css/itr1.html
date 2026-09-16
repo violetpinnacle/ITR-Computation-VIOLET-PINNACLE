@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ITR-1 Computation Generator</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <h1>ITR-1 Computation Generator</h1>
+  <p>Upload your ITR-1 JSON file to generate a computation sheet</p>
+</header>
+
+<main>
+  <section class="upload-section no-print" id="uploadSection">
+    <div class="upload-box">
+      <p><strong>Select your ITR-1 JSON file</strong></p>
+      <p style="font-size:0.85rem;color:#777;margin-top:6px;">
+        This should be the JSON exported from the Income Tax e-Filing portal or offline utility.
+      </p>
+      <input type="file" id="fileInput" accept=".json">
+      <div class="error-msg" id="errorMsg"></div>
+    </div>
+  </section>
+
+  <section id="outputSection"></section>
+</main>
+
+<footer class="site-footer no-print">
+  <p>All processing happens locally in your browser. No file is uploaded anywhere.</p>
+  <p style="margin-top:6px;"><a href="index.html">&larr; Back to ITR type selection</a></p>
+</footer>
+
+<script src="js/parser-itr1.js"></script>
+<script src="js/tax-engine.js"></script>
+<script src="js/render.js"></script>
+<script>
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  const errorMsg = document.getElementById('errorMsg');
+  errorMsg.style.display = 'none';
+  errorMsg.textContent = '';
+
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    let data;
+    try {
+      data = JSON.parse(event.target.result);
+    } catch (err) {
+      showError('This file is not valid JSON. Please upload the correct ITR-1 JSON file.');
+      return;
+    }
+
+    // Validate this is actually an ITR-1 file
+    if (!data.ITR || !data.ITR.ITR1) {
+      showError('This does not look like an ITR-1 JSON file. Please check you have uploaded the correct file.');
+      return;
+    }
+
+    try {
+      const parsed = parseITR1(data);
+      const computed = computeTaxITR1(parsed);
+      renderComputationITR1(parsed, computed);
+      document.getElementById('uploadSection').style.display = 'none';
+    } catch (err) {
+      showError('Something went wrong while processing this file: ' + err.message);
+      console.error(err);
+    }
+  };
+  reader.onerror = function() {
+    showError('Could not read the file. Please try again.');
+  };
+  reader.readAsText(file);
+});
+
+function showError(msg) {
+  const errorMsg = document.getElementById('errorMsg');
+  errorMsg.textContent = msg;
+  errorMsg.style.display = 'block';
+}
+</script>
+
+</body>
+</html>
