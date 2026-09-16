@@ -1,99 +1,102 @@
-// Renders the ITR-1 computation sheet into the page.
+// Parses a raw ITR-1 JSON object into a flat, simple structure
+// that the tax engine and renderer can use safely.
 
-function formatCurrency(num) {
-  const n = Number(num) || 0;
-  return '₹' + n.toLocaleString('en-IN');
+function safeGet(obj, path, fallback) {
+  try {
+    const parts = path.split('.');
+    let val = obj;
+    for (const p of parts) {
+      if (val === undefined || val === null) return fallback;
+      val = val[p];
+    }
+    return (val === undefined || val === null) ? fallback : val;
+  } catch (e) {
+    return fallback;
+  }
 }
 
-function formatAadhaar(num) {
-  const clean = (num || '').toString().replace(/\D/g, '');
-  if (clean.length !== 12) return num || '';
-  return clean.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3');
-}
+function parseITR1(rawData) {
+  const itr1 = rawData.ITR.ITR1;
 
-function renderComputationITR1(parsed, computed) {
-  const container = document.getElementById('outputSection');
+  const personal = {
+    firstName: safeGet(itr1, 'PersonalInfo.AssesseeName.FirstName', ''),
+    surName: safeGet(itr1, 'PersonalInfo.AssesseeName.SurNameOrOrgName', ''),
+    pan: safeGet(itr1, 'PersonalInfo.PAN', ''),
+    aadhaar: safeGet(itr1, 'PersonalInfo.AadhaarCardNo', ''),
+    dob: safeGet(itr1, 'PersonalInfo.DOB', ''),
+    city: safeGet(itr1, 'PersonalInfo.Address.CityOrTownOrDistrict', ''),
+    pin: safeGet(itr1, 'PersonalInfo.Address.PinCode', '')
+  };
 
-  const fullName = (parsed.personal.firstName + ' ' + parsed.personal.surName).trim();
-  const regimeLabel = parsed.filing.oldRegime ? 'Old Tax Regime' : 'New Tax Regime';
+  const filing = {
+    assessmentYear: safeGet(itr1, 'Form_ITR1.AssessmentYear', ''),
+    filingSection: safeGet(itr1, 'FilingStatus.ReturnFileSec', ''),
+    dueDate: safeGet(itr1, 'FilingStatus.ItrFilingDueDate', ''),
+    oldRegime: safeGet(itr1, 'FilingStatus.OptOutNewTaxRegime', 'N') === 'Y'
+  };
 
-  container.innerHTML = `
-    <div class="comp-sheet">
-      <h2>Income Tax Computation Sheet</h2>
-      <p><strong>Name:</strong> ${fullName}</p>
-      <p><strong>PAN:</strong> ${parsed.personal.pan}</p>
-      <p><strong>Aadhaar No.:</strong> ${formatAadhaar(parsed.personal.aadhaar)}</p>
-      <p><strong>Assessment Year:</strong> ${parsed.filing.assessmentYear}-${(parseInt(parsed.filing.assessmentYear)+1).toString().slice(-2)}</p>
-      <p><strong>Regime:</strong> ${regimeLabel}</p>
+  const income = {
+    grossSalary: safeGet(itr1, 'ITR1_IncomeDeductions.GrossSalary', 0),
+    allowancesExempt: safeGet(itr1, 'ITR1_IncomeDeductions.AllwncExemptUs10.TotalAllwncExemptUs10', 0),
+    netSalary: safeGet(itr1, 'ITR1_IncomeDeductions.NetSalary', 0),
+    stdDeduction16ia: safeGet(itr1, 'ITR1_IncomeDeductions.DeductionUs16ia', 0),
+    entertainmentAllow16ii: safeGet(itr1, 'ITR1_IncomeDeductions.EntertainmentAlw16ii', 0),
+    professionalTax16iii: safeGet(itr1, 'ITR1_IncomeDeductions.ProfessionalTaxUs16iii', 0),
+    incomeFromSalary: safeGet(itr1, 'ITR1_IncomeDeductions.IncomeFromSal', 0),
+    incomeFromHouseProperty: safeGet(itr1, 'ITR1_IncomeDeductions.TotalIncomeOfHP', 0),
+    incomeFromOtherSources: safeGet(itr1, 'ITR1_IncomeDeductions.IncomeOthSrc', 0),
+    grossTotalIncome: safeGet(itr1, 'ITR1_IncomeDeductions.GrossTotIncome', 0),
+    totalIncome: safeGet(itr1, 'ITR1_IncomeDeductions.TotalIncome', 0)
+  };
 
-      <h3>Income Details</h3>
-      <table>
-        <tr><td>Gross Salary</td><td class="amount">${formatCurrency(parsed.income.grossSalary)}</td></tr>
-        <tr><td>Less: Allowances exempt u/s 10</td><td class="amount">${formatCurrency(parsed.income.allowancesExempt)}</td></tr>
-        <tr><td>Net Salary</td><td class="amount">${formatCurrency(parsed.income.netSalary)}</td></tr>
-        <tr><td>Less: Standard Deduction u/s 16(ia)</td><td class="amount">${formatCurrency(parsed.income.stdDeduction16ia)}</td></tr>
-        <tr><td>Less: Professional Tax u/s 16(iii)</td><td class="amount">${formatCurrency(parsed.income.professionalTax16iii)}</td></tr>
-        <tr><td><strong>Income from Salary</strong></td><td class="amount"><strong>${formatCurrency(parsed.income.incomeFromSalary)}</strong></td></tr>
-        <tr><td>Income from House Property</td><td class="amount">${formatCurrency(parsed.income.incomeFromHouseProperty)}</td></tr>
-        <tr><td>Income from Other Sources</td><td class="amount">${formatCurrency(parsed.income.incomeFromOtherSources)}</td></tr>
-        <tr class="total-row"><td>Gross Total Income</td><td class="amount">${formatCurrency(parsed.income.grossTotalIncome)}</td></tr>
-      </table>
+  const viaRaw = safeGet(itr1, 'ITR1_IncomeDeductions.DeductUndChapVIA', {});
+  const deductions = {
+    sec80C: viaRaw.Section80C || 0,
+    sec80CCC: viaRaw.Section80CCC || 0,
+    sec80CCD1: viaRaw.Section80CCDEmployeeOrSE || 0,
+    sec80CCD1B: viaRaw.Section80CCD1B || 0,
+    sec80CCD2: viaRaw.Section80CCDEmployer || 0,
+    sec80D: viaRaw.Section80D || 0,
+    sec80DD: viaRaw.Section80DD || 0,
+    sec80DDB: viaRaw.Section80DDB || 0,
+    sec80E: viaRaw.Section80E || 0,
+    sec80EE: viaRaw.Section80EE || 0,
+    sec80EEA: viaRaw.Section80EEA || 0,
+    sec80EEB: viaRaw.Section80EEB || 0,
+    sec80G: viaRaw.Section80G || 0,
+    sec80GG: viaRaw.Section80GG || 0,
+    sec80GGA: viaRaw.Section80GGA || 0,
+    sec80GGC: viaRaw.Section80GGC || 0,
+    sec80TTA: viaRaw.Section80TTA || 0,
+    sec80TTB: viaRaw.Section80TTB || 0,
+    sec80U: viaRaw.Section80U || 0,
+    total: viaRaw.TotalChapVIADeductions || 0
+  };
 
-      <h3>Deductions under Chapter VI-A</h3>
-      <table>
-        ${renderDeductionRow('Section 80C', parsed.deductions.sec80C)}
-        ${renderDeductionRow('Section 80CCD(1B)', parsed.deductions.sec80CCD1B)}
-        ${renderDeductionRow('Section 80D', parsed.deductions.sec80D)}
-        ${renderDeductionRow('Section 80E', parsed.deductions.sec80E)}
-        ${renderDeductionRow('Section 80G', parsed.deductions.sec80G)}
-        ${renderDeductionRow('Section 80TTA', parsed.deductions.sec80TTA)}
-        ${renderDeductionRow('Section 80TTB', parsed.deductions.sec80TTB)}
-        <tr class="total-row"><td>Total Deductions</td><td class="amount">${formatCurrency(parsed.deductions.total)}</td></tr>
-      </table>
+  const taxComp = {
+    totalTaxPayable: safeGet(itr1, 'ITR1_TaxComputation.TotalTaxPayable', 0),
+    rebate87A: safeGet(itr1, 'ITR1_TaxComputation.Rebate87A', 0),
+    taxAfterRebate: safeGet(itr1, 'ITR1_TaxComputation.TaxPayableOnRebate', 0),
+    cess: safeGet(itr1, 'ITR1_TaxComputation.EducationCess', 0),
+    grossTaxLiability: safeGet(itr1, 'ITR1_TaxComputation.GrossTaxLiability', 0),
+    relief89: safeGet(itr1, 'ITR1_TaxComputation.Section89', 0),
+    netTaxLiability: safeGet(itr1, 'ITR1_TaxComputation.NetTaxLiability', 0),
+    interestPayable: safeGet(itr1, 'ITR1_TaxComputation.TotalIntrstPay', 0),
+    totalTaxAndInterest: safeGet(itr1, 'ITR1_TaxComputation.TotTaxPlusIntrstPay', 0)
+  };
 
-      <h3>Tax Computation</h3>
-      <table>
-        <tr><td>Total Income (Taxable)</td><td class="amount">${formatCurrency(parsed.income.totalIncome)}</td></tr>
-        <tr><td>Tax on Total Income (as per slab)</td><td class="amount">${formatCurrency(computed.slabTax)}</td></tr>
-        <tr><td>Less: Rebate u/s 87A</td><td class="amount">${formatCurrency(computed.rebate)}</td></tr>
-        <tr><td>Tax after Rebate</td><td class="amount">${formatCurrency(computed.taxAfterRebate)}</td></tr>
-        <tr><td>Add: Health & Education Cess (4%)</td><td class="amount">${formatCurrency(computed.cess)}</td></tr>
-        <tr><td>Gross Tax Liability</td><td class="amount">${formatCurrency(computed.grossTaxLiability)}</td></tr>
-        <tr><td>Less: Relief u/s 89</td><td class="amount">${formatCurrency(computed.relief89)}</td></tr>
-        <tr class="total-row"><td>Net Tax Liability</td><td class="amount">${formatCurrency(computed.netTaxLiability)}</td></tr>
-      </table>
+  const taxPaid = {
+    tds: safeGet(itr1, 'TaxPaid.TaxesPaid.TDS', 0),
+    tcs: safeGet(itr1, 'TaxPaid.TaxesPaid.TCS', 0),
+    advanceTax: safeGet(itr1, 'TaxPaid.TaxesPaid.AdvanceTax', 0),
+    selfAssessmentTax: safeGet(itr1, 'TaxPaid.TaxesPaid.SelfAssessmentTax', 0),
+    total: safeGet(itr1, 'TaxPaid.TaxesPaid.TotalTaxesPaid', 0),
+    balancePayable: safeGet(itr1, 'TaxPaid.BalTaxPayable', 0)
+  };
 
-      <h3>Taxes Paid</h3>
-      <table>
-        <tr><td>TDS</td><td class="amount">${formatCurrency(parsed.taxPaid.tds)}</td></tr>
-        <tr><td>TCS</td><td class="amount">${formatCurrency(parsed.taxPaid.tcs)}</td></tr>
-        <tr><td>Advance Tax</td><td class="amount">${formatCurrency(parsed.taxPaid.advanceTax)}</td></tr>
-        <tr><td>Self-Assessment Tax</td><td class="amount">${formatCurrency(parsed.taxPaid.selfAssessmentTax)}</td></tr>
-        <tr class="total-row"><td>Total Taxes Paid</td><td class="amount">${formatCurrency(computed.totalTaxesPaid)}</td></tr>
-      </table>
+  const refund = {
+    refundDue: safeGet(itr1, 'Refund.RefundDue', 0)
+  };
 
-      <h3>Final Result</h3>
-      <table>
-        ${computed.refundDue > 0
-          ? `<tr class="total-row"><td>Refund Due</td><td class="amount">${formatCurrency(computed.refundDue)}</td></tr>`
-          : `<tr class="total-row"><td>Balance Tax Payable</td><td class="amount">${formatCurrency(computed.balancePayable)}</td></tr>`
-        }
-      </table>
-
-      <div class="no-print" style="margin-top:24px;">
-        <button onclick="window.print()">Print / Save as PDF</button>
-        <button onclick="location.reload()">Upload Another File</button>
-      </div>
-
-      <p style="font-size:0.8rem;color:#888;margin-top:20px;">
-        This is an unofficial computation sheet generated for reference purposes only.
-        It is not a substitute for the official filed return or professional tax advice.
-      </p>
-    </div>
-  `;
-}
-
-function renderDeductionRow(label, amount) {
-  if (!amount || amount === 0) return '';
-  return `<tr><td>${label}</td><td class="amount">${formatCurrency(amount)}</td></tr>`;
+  return { personal, filing, income, deductions, taxComp, taxPaid, refund };
 }
