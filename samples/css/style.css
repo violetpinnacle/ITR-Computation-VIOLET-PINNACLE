@@ -1,0 +1,146 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f5f6fa;
+  color: #1a1a2e;
+  line-height: 1.5;
+}
+
+.site-header {
+  background: #1a2a52;
+  color: white;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.site-header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
+.site-header p {
+  color: #c8d0e0;
+  font-size: 1rem;
+}
+
+.itr-select {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.itr-card {
+  display: block;
+  background: white;
+  border: 1px solid #e0e2e8;
+  border-radius: 8px;
+  padding: 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.itr-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+.itr-card h2 {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+  color: #1a2a52;
+}
+
+.itr-card p {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.itr-card.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.site-footer {
+  text-align: center;
+  padding: 30px 20px;
+  color: #888;
+  font-size: 0.85rem;
+}
+
+/* Upload page */
+.upload-section {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.upload-box {
+  background: white;
+  border: 2px dashed #c8d0e0;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.upload-box input[type="file"] {
+  margin-top: 16px;
+}
+
+.error-msg {
+  color: #c0392b;
+  background: #fdecea;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 16px;
+  display: none;
+}
+
+/* Computation sheet */
+.comp-sheet {
+  max-width: 800px;
+  margin: 30px auto;
+  background: white;
+  border-radius: 8px;
+  padding: 30px;
+}
+
+.comp-sheet table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.comp-sheet th, .comp-sheet td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.comp-sheet th {
+  background: #f0f2f7;
+}
+
+.comp-sheet .amount {
+  text-align: right;
+}
+
+.comp-sheet .total-row {
+  font-weight: bold;
+  border-top: 2px solid #1a2a52;
+}
+
+@media print {
+  .site-header, .site-footer, .no-print {
+    display: none;
+  }
+}
