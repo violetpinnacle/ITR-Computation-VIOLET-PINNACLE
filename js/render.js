@@ -1,5 +1,8 @@
 // Renders the ITR-1 computation sheet into the page.
 
+let _lastParsed = null;
+let _lastComputed = null;
+
 function formatCurrency(num) {
   const n = Number(num) || 0;
   return '₹' + n.toLocaleString('en-IN');
@@ -12,6 +15,7 @@ function formatAadhaar(num) {
 }
 
 function renderWatermark() {
+  if (isPaid()) return '';
   const wmText = 'VIOLET PINNACLE\n(Your Trusted tax & gst partner)\nThiruvariyaru, Thanjavur - 613204\ngmail: violetpinnacle@gmail.com';
   let tiles = '';
   for (let i = 0; i < 18; i++) {
@@ -20,8 +24,15 @@ function renderWatermark() {
   return `<div class="watermark-layer">${tiles}</div>`;
 }
 
+function renderPaymentButton() {
+  if (isPaid()) return '';
+  return `<button onclick="startPayment(function(){ renderComputationITR1(_lastParsed, _lastComputed); })">Pay ₹${PAYMENT_AMOUNT_RUPEES} to Remove Watermark</button>`;
+}
+
 function renderComputationITR1(parsed, computed) {
   const container = document.getElementById('outputSection');
+  _lastParsed = parsed;
+  _lastComputed = computed;
 
   if (computed.error) {
     container.innerHTML = `
@@ -103,6 +114,7 @@ function renderComputationITR1(parsed, computed) {
       </table>
 
       <div class="no-print" style="margin-top:24px;">
+        ${renderPaymentButton()}
         <button onclick="window.print()">Print / Save as PDF</button>
         <button onclick="location.reload()">Upload Another File</button>
       </div>
