@@ -1,12 +1,17 @@
-// Renders the ITR-1 computation sheet into the page.
-
-function formatCurrency(num) {
-  const n = Number(num) || 0;
-  return '₹' + n.toLocaleString('en-IN');
-}
-
 function renderComputationITR1(parsed, computed) {
   const container = document.getElementById('outputSection');
+
+  if (computed.error) {
+    container.innerHTML = `
+      <div class="comp-sheet">
+        <p style="color:#b00020; font-weight:bold;">${computed.message}</p>
+        <div class="no-print" style="margin-top:16px;">
+          <button onclick="location.reload()">Upload Another File</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
 
   const fullName = (parsed.personal.firstName + ' ' + parsed.personal.surName).trim();
   const regimeLabel = parsed.filing.oldRegime ? 'Old Tax Regime' : 'New Tax Regime';
@@ -16,6 +21,7 @@ function renderComputationITR1(parsed, computed) {
       <h2>Income Tax Computation Sheet</h2>
       <p><strong>Name:</strong> ${fullName}</p>
       <p><strong>PAN:</strong> ${parsed.personal.pan}</p>
+      <p><strong>Aadhaar No.:</strong> ${formatAadhaar(parsed.personal.aadhaar)}</p>
       <p><strong>Assessment Year:</strong> ${parsed.filing.assessmentYear}-${(parseInt(parsed.filing.assessmentYear)+1).toString().slice(-2)}</p>
       <p><strong>Regime:</strong> ${regimeLabel}</p>
 
