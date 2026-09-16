@@ -1,3 +1,25 @@
+// Renders the ITR-1 computation sheet into the page.
+
+function formatCurrency(num) {
+  const n = Number(num) || 0;
+  return '₹' + n.toLocaleString('en-IN');
+}
+
+function formatAadhaar(num) {
+  const clean = (num || '').toString().replace(/\D/g, '');
+  if (clean.length !== 12) return num || '';
+  return clean.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3');
+}
+
+function renderWatermark() {
+  const wmText = 'VIOLET PINNACLE\n(Your Trusted tax & gst partner)\nThiruvariyaru, Thanjavur - 613204\ngmail: violetpinnacle@gmail.com';
+  let tiles = '';
+  for (let i = 0; i < 18; i++) {
+    tiles += `<div class="watermark-text">${wmText}</div>`;
+  }
+  return `<div class="watermark-layer">${tiles}</div>`;
+}
+
 function renderComputationITR1(parsed, computed) {
   const container = document.getElementById('outputSection');
 
@@ -18,6 +40,7 @@ function renderComputationITR1(parsed, computed) {
 
   container.innerHTML = `
     <div class="comp-sheet">
+      ${renderWatermark()}
       <h2>Income Tax Computation Sheet</h2>
       <p><strong>Name:</strong> ${fullName}</p>
       <p><strong>PAN:</strong> ${parsed.personal.pan}</p>
