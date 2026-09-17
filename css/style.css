@@ -110,35 +110,88 @@ body {
   max-width: 800px;
   margin: 30px auto;
   background: white;
-  border-radius: 8px;
-  padding: 30px;
-  position: relative;
-  overflow: hidden;
+  border-radius: 4px;
+  padding: 30px 36px;
+  font-family: "Times New Roman", Georgia, serif;
+  color: #000;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
-.comp-sheet table {
+.sheet-title {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.sheet-title h2 {
+  font-size: 1.3rem;
+  margin-bottom: 4px;
+}
+
+.sheet-title .sub-title {
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.info-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+  font-size: 0.9rem;
 }
 
-.comp-sheet th, .comp-sheet td {
-  text-align: left;
-  padding: 8px 10px;
-  border-bottom: 1px solid #eee;
+.info-table td {
+  padding: 4px 6px;
+  vertical-align: top;
 }
 
-.comp-sheet th {
-  background: #f0f2f7;
-}
-
-.comp-sheet .amount {
-  text-align: right;
-}
-
-.comp-sheet .total-row {
+.info-label {
   font-weight: bold;
-  border-top: 2px solid #1a2a52;
+  white-space: nowrap;
+}
+
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #000;
+  margin-bottom: 18px;
+  font-size: 0.9rem;
+}
+
+.comp-table td, .comp-table th {
+  border: 1px solid #000;
+  padding: 6px 10px;
+}
+
+.comp-table .section-head th {
+  background: #eee;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.comp-table .amount {
+  text-align: right;
+  width: 160px;
+}
+
+.comp-table .indent {
+  padding-left: 28px;
+}
+
+.comp-table .row-bold td {
+  font-weight: bold;
+}
+
+.comp-table .total-row td {
+  border-top: 2px solid #000;
+}
+
+.disclaimer {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 18px;
 }
 
 /* Action buttons */
