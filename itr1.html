@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ITR-1 Computation Generator</title>
 <link rel="stylesheet" href="css/style.css">
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
 
@@ -26,16 +25,6 @@
     </div>
   </section>
 
-  <section class="upload-section no-print" id="paymentSection" style="display:none;">
-    <div class="upload-box">
-      <p><strong>File verified. One step left.</strong></p>
-      <p style="font-size:0.85rem;color:#777;margin:6px 0 16px;">
-        Pay ₹<span id="payAmount"></span> to generate your clean computation PDF (no watermark).
-      </p>
-      <button id="payButton">Pay &amp; Generate PDF</button>
-    </div>
-  </section>
-
   <section id="outputSection"></section>
 </main>
 
@@ -46,13 +35,10 @@
 
 <script src="js/parser-itr1.js"></script>
 <script src="js/tax-engine.js"></script>
-<script src="js/payment.js"></script>
 <script src="js/render.js"></script>
 <script>
 let _pendingParsed = null;
 let _pendingComputed = null;
-
-document.getElementById('payAmount').textContent = PAYMENT_AMOUNT_RUPEES;
 
 document.getElementById('fileInput').addEventListener('change', function(e) {
   const file = e.target.files[0];
@@ -87,7 +73,7 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
       }
 
       document.getElementById('uploadSection').style.display = 'none';
-      document.getElementById('paymentSection').style.display = 'block';
+      renderComputationITR1(_pendingParsed, _pendingComputed);
     } catch (err) {
       showError('Something went wrong while processing this file: ' + err.message);
       console.error(err);
@@ -97,13 +83,6 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
     showError('Could not read the file. Please try again.');
   };
   reader.readAsText(file);
-});
-
-document.getElementById('payButton').addEventListener('click', function() {
-  startPayment(function() {
-    document.getElementById('paymentSection').style.display = 'none';
-    renderComputationITR1(_pendingParsed, _pendingComputed);
-  });
 });
 
 function showError(msg) {
