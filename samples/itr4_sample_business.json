@@ -1,0 +1,105 @@
+{
+  "ITR": {
+    "ITR4": {
+      "Form_ITR4": {
+        "FormName": "ITR-4",
+        "Description": "For Individuals, HUFs and Firms (other than LLP) with presumptive income",
+        "AssessmentYear": "2025",
+        "SchemaVer": "Ver1.0",
+        "FormVer": "Ver1.0"
+      },
+      "PersonalInfo": {
+        "AssesseeName": { "FirstName": "ANITA", "SurNameOrOrgName": "SHARMA" },
+        "PAN": "AAAPS5678Q",
+        "DOB": "1988-05-12",
+        "AadhaarCardNo": "888888888888",
+        "Address": {
+          "CountryCodeMobile": 91,
+          "MobileNo": 9888888888,
+          "EmailAddress": "sample@example.com",
+          "CityOrTownOrDistrict": "Sample City",
+          "StateCode": "29",
+          "CountryCode": "91",
+          "PinCode": 600002
+        }
+      },
+      "FilingStatus": {
+        "ReturnFileSec": 11,
+        "ItrFilingDueDate": "2025-07-31",
+        "OptOutNewTaxRegime": "N"
+      },
+      "Verification": {
+        "Declaration": {
+          "AssesseeVerName": "ANITA SHARMA",
+          "FatherName": "RAMESH SHARMA",
+          "AssesseeVerPAN": "AAAPS5678Q"
+        },
+        "Capacity": "S",
+        "Place": "Sample City"
+      },
+      "ITR4_IncomeDeductions": {
+        "GrossSalary": 0,
+        "AllwncExemptUs10": { "TotalAllwncExemptUs10": 0 },
+        "NetSalary": 0,
+        "DeductionUs16ia": 0,
+        "ProfessionalTaxUs16iii": 0,
+        "IncomeFromSal": 0,
+
+        "PresumptiveIncome44AD": {
+          "GrossTurnoverOrGrossReceipt44AD": 1800000,
+          "TotPresumptiveIncome44AD": 144000
+        },
+        "PersumptiveInc44ADA": {
+          "GrsReceipt": 0,
+          "TotPersumptiveInc44ADA": 0
+        },
+        "PresumptiveIncome44AE": {
+          "TotPresumptiveIncome44AE": 0
+        },
+
+        "TotalIncomeOfHP": 0,
+        "IncomeOthSrc": 18500,
+        "GrossTotIncome": 162500,
+        "DeductUndChapVIA": {
+          "Section80C": 40000,
+          "Section80CCC": 0,
+          "Section80CCDEmployeeOrSE": 0,
+          "Section80CCD1B": 0,
+          "Section80CCDEmployer": 0,
+          "Section80D": 12000,
+          "Section80DD": 0,
+          "Section80DDB": 0,
+          "Section80E": 0,
+          "Section80EE": 0,
+          "Section80EEA": 0,
+          "Section80EEB": 0,
+          "Section80G": 0,
+          "Section80GG": 0,
+          "Section80GGA": 0,
+          "Section80GGC": 0,
+          "Section80TTA": 0,
+          "Section80TTB": 0,
+          "Section80U": 0,
+          "TotalChapVIADeductions": 52000
+        },
+        "TotalIncome": 110500
+      },
+      "ITR4_TaxComputation": {
+        "TotalTaxPayable": 0,
+        "Rebate87A": 0,
+        "TaxPayableOnRebate": 0,
+        "EducationCess": 0,
+        "GrossTaxLiability": 0,
+        "Section89": 0,
+        "NetTaxLiability": 0,
+        "TotalIntrstPay": 0,
+        "TotTaxPlusIntrstPay": 0
+      },
+      "TaxPaid": {
+        "TaxesPaid": { "TCS": 0, "AdvanceTax": 0, "SelfAssessmentTax": 0, "TDS": 5000, "TotalTaxesPaid": 5000 },
+        "BalTaxPayable": 0
+      },
+      "Refund": { "RefundDue": 0 }
+    }
+  }
+}
