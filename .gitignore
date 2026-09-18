@@ -1,7 +1,0 @@
-# Never commit real client data
-*.json
-!samples/*.json
-
-# OS junk files
-.DS_Store
-Thumbs.db
