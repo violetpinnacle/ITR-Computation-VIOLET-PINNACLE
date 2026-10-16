@@ -81,29 +81,49 @@ function renderComputationITR4(data) {
   const fullName = `${firstName} ${surName}`.trim().toUpperCase() || "N/A";
 
   const addr = personal?.Address || {};
-  const fullAddr = `${addr?.ResidenceName || ''}, ${addr?.LocalityOrArea || ''}, ${addr?.CityOrTownOrDistrict || ''} - ${addr?.PinCode || ''}`.trim();
+  const fullAddr = [
+    addr?.ResidenceNo,
+    addr?.ResidenceName,
+    addr?.RoadOrStreet,
+    addr?.LocalityOrArea,
+    addr?.CityOrTownOrDistrict,
+    addr?.PinCode ? `- ${addr.PinCode}` : ''
+  ].filter(Boolean).join(', ') || "THANJAVUR";
 
   const pan = personal?.PAN || "N/A";
   const dob = personal?.DOB || "-";
-  const aadhaar = personal?.AadhaarCardNo || "";
-  const ay = root?.Form_ITR4?.AssessmentYear || "2026";
-  const py = "2025-2026";
+  
+  // Extract Assessment Year dynamically with fallback
+  let ay = "2026-2027";
+  const rawAY = root?.Form_ITR4?.AssessmentYear || root?.CreationInfo?.JSONCreationDate;
+  if (rawAY) {
+    if (rawAY.toString().length === 4) {
+      const yearNum = parseInt(rawAY, 10);
+      ay = `${yearNum}-${yearNum + 1}`;
+    } else if (rawAY.toString().includes('-')) {
+      ay = rawAY;
+    }
+  }
 
-  // ITR-4 Income & Deductions mapping
+  // Previous year derivation based on Assessment Year
+  const ayStartYear = parseInt(ay.split('-')[0], 10) || 2026;
+  const py = `${ayStartYear - 1}-${ayStartYear}`;
+
+  // Income & Deductions Mapping
   const income = root?.IncomeDeductions || {};
   const bp = root?.ScheduleBP?.PersumptiveInc44AD || {};
   
   const turnover = Number(bp?.GrsTotalTrnOver || 0);
-  const businessInc = Number(bp?.TotPersumptiveInc44AD || income?.IncomeFromBusinessProf || 0);
+  const businessInc = Number(bp?.TotPersumptiveInc44AD || bp?.PersumptiveInc44AD8Per || income?.IncomeFromBusinessProf || 0);
   const otherInc = Number(income?.IncomeOthSrc || 0);
-  const gti = Number(income?.GrossTotInc || 0);
+  const gti = Number(income?.GrossTotInc || (businessInc + otherInc));
   
-  const ded = income?.DeductUndChapVIA || {};
+  const ded = income?.DeductUndChapVIA || income?.UsrDeductUndChapVIA || {};
   const totalDed = Number(ded?.TotalChapVIADeductions || 0);
   const sec80C = Number(ded?.Section80C || 0);
   const sec80D = Number(ded?.Section80D || 0);
 
-  const totalInc = Number(income?.TotalIncome || 0);
+  const totalInc = Number(income?.TotalIncome || Math.max(0, gti - totalDed));
 
   const taxComp = root?.TaxComputation || {};
   const taxOnInc = Number(taxComp?.TotalTaxPayable || 0);
@@ -111,15 +131,6 @@ function renderComputationITR4(data) {
   const taxAfterRebate = Math.max(0, taxOnInc - rebate);
   const cess = Number(taxComp?.EducationCess || 0);
   const netTax = Number(taxComp?.NetTaxLiability || taxComp?.GrossTaxLiability || 0);
-
-  // Conditional Aadhaar row rendering (omitted if not present in file)
-  const aadhaarRow = aadhaar ? `
-        <tr>
-          <td></td><td></td><td></td>
-          <td style="padding: 3px 0;"><strong>Aadhaar No.</strong></td>
-          <td>:</td>
-          <td style="padding: 3px 0;">[Redacted]</td>
-        </tr>` : '';
 
   const outputHTML = `
     <div style="max-width: 800px; margin: 30px auto; background: #fff; padding: 40px; font-family: Arial, sans-serif; color: #000; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
@@ -144,7 +155,6 @@ function renderComputationITR4(data) {
           <td style="vertical-align: top;">:</td>
           <td style="padding: 3px 0; vertical-align: top;">${pan}</td>
         </tr>
-        ${aadhaarRow}
         <tr>
           <td></td><td></td><td></td>
           <td style="padding: 3px 0;"><strong>Date of Birth</strong></td>
