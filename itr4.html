@@ -1,161 +1,260 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ITR-4 Computation Generator - Violet Pinnacle</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
-        header { background-color: #1a2b4c; color: white; text-align: center; padding: 30px 20px; }
-        header h1 { margin: 0; font-size: 24px; }
-        header p { margin: 10px 0 0; color: #b0c4de; font-size: 14px; }
-        .container { max-width: 800px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .upload-box { border: 2px dashed #b0c4de; padding: 40px; border-radius: 6px; background: #fafbfc; text-align: center; margin-top: 20px; }
-        input[type="file"] { margin: 15px 0; font-size: 14px; cursor: pointer; }
-        .back-link { display: inline-block; margin-top: 20px; color: #1a2b4c; text-decoration: none; font-size: 14px; }
-        .back-link:hover { text-decoration: underline; }
-        
-        /* Computation Sheet Styles */
-        #computation-result { display: none; margin-top: 30px; }
-        .comp-table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 25px; }
-        .comp-table th, .comp-table td { border: 1px solid #ddd; padding: 10px; font-size: 14px; }
-        .comp-table th { background-color: #1a2b4c; color: white; text-align: left; }
-        .comp-table td.amount { text-align: right; }
-        .print-btn { background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; display: block; width: 100%; font-size: 16px; margin-top: 20px; text-align: center; }
-        .print-btn:hover { background-color: #218838; }
-
-        @media print {
-            body { background: white; }
-            .container { box-shadow: none; margin: 0; max-width: 100%; padding: 0; }
-            .upload-box, .print-btn, .back-link, header { display: none; }
-            #computation-result { display: block !important; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ITR-4 Computation Generator - Violet Pinnacle</title>
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <header>
-        <h1>ITR-4 Computation Generator</h1>
-        <p>Violet Pinnacle — Tax & Accounting Desk</p>
-    </header>
+<header class="site-header">
+  <h1>ITR-4 Computation Generator</h1>
+  <p>Upload your ITR-4 JSON file to generate a computation sheet</p>
+</header>
 
-    <div class="container">
-        <div id="upload-section">
-            <h3 style="color: #1a2b4c; margin-top: 0;">Select your ITR-4 JSON file</h3>
-            <p style="color: #666; font-size: 13px;">Upload the JSON file exported from the Income Tax e-Filing portal or offline utility.</p>
-            <div class="upload-box">
-                <label for="jsonFile" style="cursor: pointer; display: block;">
-                    <span style="font-weight: bold; color: #1a2b4c; display: block; margin-bottom: 10px;">Click here or choose file below</span>
-                    <input type="file" id="jsonFile" accept=".json">
-                </label>
-            </div>
-        </div>
-
-        <!-- Generated Computation Sheet Preview -->
-        <div id="computation-result">
-            <h2 style="text-align: center; color: #1a2b4c; margin-bottom: 5px;">VIOLET PINNACLE</h2>
-            <p style="text-align: center; font-size: 12px; color: #555; margin-top: 0;">Tax, Accounting & GST Consulting | Thiruvaiyaru, Thanjavur</p>
-            <h3 style="text-align: center; color: #333; margin-top: 15px;">Tax Computation Statement (AY 2026-27)</h3>
-            <hr style="border: 0; border-top: 1px solid #ccc; margin: 20px 0;">
-            
-            <h4>1. Assessee Personal Details</h4>
-            <table class="comp-table">
-                <tr><td><strong>Name:</strong></td><td id="res-name">-</td></tr>
-                <tr><td><strong>PAN:</strong></td><td id="res-pan">-</td></tr>
-                <tr><td><strong>Assessment Year:</strong></td><td id="res-ay">2026-27</td></tr>
-            </table>
-
-            <h4>2. Computation of Income (Presumptive Business / Profession)</h4>
-            <table class="comp-table">
-                <tr><th>Head of Income</th><th>Amount (₹)</th></tr>
-                <tr><td>Gross Turnover / Receipts (Sec 44AD / 44ADA)</td><td id="res-turnover" class="amount">0</td></tr>
-                <tr><td>Taxable Business Income (Presumptive)</td><td id="res-business" class="amount">0</td></tr>
-                <tr><td>Income from Salary / Other Sources / House Property</td><td id="res-other" class="amount">0</td></tr>
-                <tr><td><strong>Gross Total Income (GTI)</strong></td><td id="res-gti" class="amount"><strong>0</strong></td></tr>
-                <tr><td>Less: Chapter VIA Deductions (80C, 80D, etc.)</td><td id="res-deductions" class="amount">0</td></tr>
-                <tr><td><strong>Total Taxable Income</strong></td><td id="res-total-income" class="amount"><strong>0</strong></td></tr>
-            </table>
-
-            <h4>3. Tax Computation & Payable</h4>
-            <table class="comp-table">
-                <tr><td>Tax on Total Income</td><td id="res-tax" class="amount">0</td></tr>
-                <tr><td>Less: Rebate under Section 87A</td><td id="res-rebate" class="amount">0</td></tr>
-                <tr><td>Add: Health & Education Cess (4%)</td><td id="res-cess" class="amount">0</td></tr>
-                <tr><td><strong>Net Tax Payable / (Refundable)</strong></td><td id="res-net-tax" class="amount"><strong>0</strong></td></tr>
-            </table>
-
-            <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
-        </div>
-
-        <div>
-            <a href="index.html" class="back-link">← Back to ITR Type Selection</a>
-        </div>
+<main>
+  <section class="upload-section no-print" id="uploadSection">
+    <div class="upload-box">
+      <p><strong>Select your ITR-4 JSON file</strong></p>
+      <p style="font-size:0.85rem;color:#777;margin-top:6px;">
+        This should be the JSON exported from the Income Tax e-Filing portal or offline utility.
+      </p>
+      <input type="file" id="fileInput" accept=".json">
+      <div class="error-msg" id="errorMsg" style="color: red; margin-top: 10px; display: none;"></div>
     </div>
+  </section>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const fileInput = document.getElementById('jsonFile');
-            if (fileInput) {
-                fileInput.addEventListener('change', function(event) {
-                    const file = event.target.files[0];
-                    if (!file) return;
+  <section id="outputSection"></section>
+</main>
 
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        try {
-                            const jsonData = JSON.parse(e.target.result);
-                            populateITR4Data(jsonData);
-                            
-                            document.getElementById('upload-section').style.display = 'none';
-                            document.getElementById('computation-result').style.display = 'block';
-                        } catch (error) {
-                            alert('Invalid JSON file. Please upload a valid ITR-4 JSON exported from the portal.');
-                            console.error(error);
-                        }
-                    };
-                    reader.readAsText(file);
-                });
-            }
-        });
+<footer class="site-footer no-print">
+  <p>All processing happens locally in your browser. No file is uploaded anywhere.</p>
+  <p style="margin-top:6px;"><a href="index.html">&larr; Back to ITR type selection</a></p>
+</footer>
 
-        function populateITR4Data(data) {
-            const root = data.ITR ? data.ITR.ITR4 : (data.Form_ITR4 || data);
-            
-            // Personal Info
-            const personal = root?.CreationInfo || root?.PersonalInfo || data?.PersonalInfo || {};
-            const assesseeName = personal?.AssesseeName ? 
-                `${personal.AssesseeName.FirstName || ''} ${personal.AssesseeName.MiddleName || ''} ${personal.AssesseeName.SurName || ''}`.trim() : 
-                (personal?.Name || "N/A");
-            document.getElementById('res-name').innerText = assesseeName.toUpperCase();
-            document.getElementById('res-pan').innerText = personal?.PAN || "N/A";
+<script>
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  const errorMsg = document.getElementById('errorMsg');
+  errorMsg.style.display = 'none';
+  errorMsg.textContent = '';
 
-            // Financial Fields extraction
-            const income = root?.ITR4_IncomeDeductions || root?.IncomeDeductions || {};
-            
-            const turnover = income?.BusProfInc?.GrossTurnover || 0;
-            const businessInc = income?.BusProfInc?.ProfBusInc || income?.BusinessIncome || 0;
-            const otherInc = income?.OthInc || 0;
-            const gti = income?.GrossTotInc || 0;
-            const deductions = income?.ChapterVIADeductions?.TotalChapVIADeductions || 0;
-            const totalInc = income?.TotalIncome || 0;
-            
-            const taxComp = root?.TaxComputation || root?.ComputationOfTax || {};
-            const taxOnInc = taxComp?.TaxPayableOnTotInc || 0;
-            const rebate = taxComp?.Rebate87A || 0;
-            const cess = taxComp?.EducationCess || 0;
-            const netTax = taxComp?.NetTaxLiability || 0;
+  if (!file) return;
 
-            document.getElementById('res-turnover').innerText = Number(turnover).toLocaleString('en-IN');
-            document.getElementById('res-business').innerText = Number(businessInc).toLocaleString('en-IN');
-            document.getElementById('res-other').innerText = Number(otherInc).toLocaleString('en-IN');
-            document.getElementById('res-gti').innerText = Number(gti).toLocaleString('en-IN');
-            document.getElementById('res-deductions').innerText = Number(deductions).toLocaleString('en-IN');
-            document.getElementById('res-total-income').innerText = Number(totalInc).toLocaleString('en-IN');
-            document.getElementById('res-tax').innerText = Number(taxOnInc).toLocaleString('en-IN');
-            document.getElementById('res-rebate').innerText = Number(rebate).toLocaleString('en-IN');
-            document.getElementById('res-cess').innerText = Number(cess).toLocaleString('en-IN');
-            document.getElementById('res-net-tax').innerText = Number(netTax).toLocaleString('en-IN');
-        }
-    </script>
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    let data;
+    try {
+      data = JSON.parse(event.target.result);
+    } catch (err) {
+      showError('This file is not valid JSON. Please upload the correct ITR-4 JSON file.');
+      return;
+    }
+
+    try {
+      renderComputationITR4(data);
+      document.getElementById('uploadSection').style.display = 'none';
+    } catch (err) {
+      showError('Something went wrong while processing this file: ' + err.message);
+      console.error(err);
+    }
+  };
+  reader.onerror = function() {
+    showError('Could not read the file. Please try again.');
+  };
+  reader.readAsText(file);
+});
+
+function showError(msg) {
+  const errorMsg = document.getElementById('errorMsg');
+  errorMsg.textContent = msg;
+  errorMsg.style.display = 'block';
+}
+
+function renderComputationITR4(data) {
+  const root = data.ITR ? data.ITR.ITR4 : (data.Form_ITR4 || data);
+  const personal = root?.CreationInfo || root?.PersonalInfo || data?.PersonalInfo || {};
+  
+  const firstName = personal?.AssesseeName?.FirstName || personal?.Name || '';
+  const midName = personal?.AssesseeName?.MiddleName || '';
+  const surName = personal?.AssesseeName?.SurName || '';
+  const fullName = `${firstName} ${midName} ${surName}`.trim().toUpperCase() || "N/A";
+
+  const addr = personal?.Address || {};
+  const fullAddr = `${addr?.ResidenceName || ''} ${addr?.LocalityOrArea || ''} ${addr?.City || ''} - ${addr?.PinCode || ''}`.trim() || "THANJAVUR";
+
+  const pan = personal?.PAN || "N/A";
+  const dob = personal?.DOB || personal?.BirthDate || "-";
+  const ay = root?.AssessmentYear || data?.AssessmentYear || "2026-2027";
+  const py = "2025-2026";
+
+  // Income Fields for ITR-4
+  const income = root?.ITR4_IncomeDeductions || root?.IncomeDeductions || {};
+  const turnover = Number(income?.BusProfInc?.GrossTurnover || 0);
+  const businessInc = Number(income?.BusProfInc?.ProfBusInc || income?.BusinessIncome || 0);
+  const otherInc = Number(income?.OthInc || 0);
+  const gti = Number(income?.GrossTotInc || 0);
+  
+  const ded = income?.ChapterVIADeductions || {};
+  const totalDed = Number(ded?.TotalChapVIADeductions || 0);
+  const sec80C = Number(ded?.Sec80C || 0);
+  const sec80D = Number(ded?.Sec80D || 0);
+
+  const totalInc = Number(income?.TotalIncome || 0);
+
+  const taxComp = root?.TaxComputation || root?.ComputationOfTax || {};
+  const taxOnInc = Number(taxComp?.TaxPayableOnTotInc || 0);
+  const rebate = Number(taxComp?.Rebate87A || 0);
+  const taxAfterRebate = Math.max(0, taxOnInc - rebate);
+  const cess = Number(taxComp?.EducationCess || 0);
+  const netTax = Number(taxComp?.NetTaxLiability || 0);
+
+  const outputHTML = `
+    <div style="max-width: 800px; margin: 30px auto; background: #fff; padding: 40px; font-family: Arial, sans-serif; color: #000; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+      <div style="text-align: center; border: 1px solid #000; padding: 6px; width: 140px; margin: 0 auto 20px auto; font-weight: bold; font-size: 13px;">
+        A.Y. ${ay}
+      </div>
+
+      <table style="width: 100%; font-size: 13px; margin-bottom: 20px; border-collapse: collapse;">
+        <tr>
+          <td style="width: 18%; padding: 3px 0;"><strong>Name</strong></td>
+          <td style="width: 2%;">:</td>
+          <td style="width: 30%; padding: 3px 0;">${fullName}</td>
+          <td style="width: 20%; padding: 3px 0;"><strong>Previous Year</strong></td>
+          <td style="width: 2%;">:</td>
+          <td style="width: 28%; padding: 3px 0;">${py}</td>
+        </tr>
+        <tr>
+          <td style="padding: 3px 0; vertical-align: top;"><strong>Address</strong></td>
+          <td style="vertical-align: top;">:</td>
+          <td style="padding: 3px 0; vertical-align: top;">${fullAddr}</td>
+          <td style="padding: 3px 0; vertical-align: top;"><strong>PAN</strong></td>
+          <td style="vertical-align: top;">:</td>
+          <td style="padding: 3px 0; vertical-align: top;">${pan}</td>
+        </tr>
+        <tr>
+          <td></td><td></td><td></td>
+          <td style="padding: 3px 0;"><strong>Aadhaar No.</strong></td>
+          <td>:</td>
+          <td style="padding: 3px 0;">[Aadhaar Redacted]</td>
+        </tr>
+        <tr>
+          <td></td><td></td><td></td>
+          <td style="padding: 3px 0;"><strong>Date of Birth</strong></td>
+          <td>:</td>
+          <td style="padding: 3px 0;">${dob}</td>
+        </tr>
+        <tr>
+          <td></td><td></td><td></td>
+          <td style="padding: 3px 0;"><strong>Status</strong></td>
+          <td>:</td>
+          <td style="padding: 3px 0;">Individual &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Resident</td>
+        </tr>
+      </table>
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px;">
+        <thead>
+          <tr>
+            <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: left; padding: 6px 4px;">Statement of Income</th>
+            <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right; padding: 6px 4px; width: 15%;">Rs.</th>
+            <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right; padding: 6px 4px; width: 15%;">Rs.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="3" style="padding: 8px 4px 4px 4px;"><strong>■ Income from Business / Profession (Presumptive 44AD / 44ADA)</strong></td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 4px 4px 15px;">Gross Turnover / Receipts</td>
+            <td style="text-align: right; padding: 4px;">${turnover.toLocaleString('en-IN')}</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 4px 4px 15px;">Presumptive Taxable Business Income</td>
+            <td></td>
+            <td style="text-align: right; padding: 4px;">${businessInc.toLocaleString('en-IN')}</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="padding: 8px 4px 4px 4px;"><strong>■ Income from Other Sources / Salary / House Property</strong></td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 4px 4px 15px;">Other Incomes / Salary / HP Income</td>
+            <td></td>
+            <td style="text-align: right; padding: 4px;">${otherInc.toLocaleString('en-IN')}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 4px; font-weight: bold;">Gross Total Income</td>
+            <td></td>
+            <td style="text-align: right; padding: 8px 4px; font-weight: bold;">${gti.toLocaleString('en-IN')}</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="padding: 8px 4px 4px 4px;"><strong>Less: Deductions under Chapter VI-A</strong></td>
+          </tr>
+          ${sec80C > 0 ? `<tr><td style="padding: 4px 4px 4px 15px;">Section 80C</td><td style="text-align: right; padding: 4px;">${sec80C.toLocaleString('en-IN')}</td><td></td></tr>` : ''}
+          ${sec80D > 0 ? `<tr><td style="padding: 4px 4px 4px 15px;">Section 80D</td><td style="text-align: right; padding: 4px;">${sec80D.toLocaleString('en-IN')}</td><td></td></tr>` : ''}
+          <tr>
+            <td style="padding: 4px 4px 4px 15px; font-weight: bold;">Total Deductions</td>
+            <td></td>
+            <td style="text-align: right; padding: 4px; font-weight: bold;">${totalDed.toLocaleString('en-IN')}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 4px; font-weight: bold;">■ Total Income</td>
+            <td></td>
+            <td style="text-align: right; padding: 8px 4px; font-weight: bold;">${totalInc.toLocaleString('en-IN')}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 4px;">Tax on Total Income</td>
+            <td></td>
+            <td style="text-align: right; padding: 4px;">${taxOnInc.toLocaleString('en-IN')}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 4px;">Less: Rebate u/s 87A</td>
+            <td></td>
+            <td style="text-align: right; padding: 4px;">${rebate.toLocaleString('en-IN')}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 4px;">Tax after Rebate</td>
+            <td></td>
+            <td style="text-align: right; padding: 4px;">${taxAfterRebate.toLocaleString('en-IN')}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 4px;">Add: Health & Education Cess @ 4%</td>
+            <td></td>
+            <td style="text-align: right; padding: 4px;">${cess.toLocaleString('en-IN')}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 4px; font-weight: bold;">Gross Tax Liability</td>
+            <td></td>
+            <td style="text-align: right; padding: 4px; font-weight: bold;">${netTax.toLocaleString('en-IN')}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 4px; font-weight: bold;">Net Tax Liability</td>
+            <td></td>
+            <td style="text-align: right; padding: 4px; font-weight: bold;">${netTax.toLocaleString('en-IN')}</td>
+          </tr>
+          <tr>
+            <td style="border-bottom: 1px solid #000; padding: 8px 4px; font-weight: bold;">■ Balance Tax Payable</td>
+            <td style="border-bottom: 1px solid #000;"></td>
+            <td style="border-bottom: 1px solid #000; text-align: right; padding: 8px 4px; font-weight: bold;">${netTax.toLocaleString('en-IN')}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="display: flex; justify-content: space-between; margin-top: 40px; font-size: 13px;">
+        <div>Date: </div>
+        <div style="text-align: right;"><strong>(VIOLET PINNACLE)</strong></div>
+      </div>
+
+      <div style="text-align: center; margin-top: 30px;" class="no-print">
+        <button onclick="window.print()" style="background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 15px;">Print / Save as PDF</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('outputSection').innerHTML = outputHTML;
+}
+</script>
+
 </body>
 </html>
