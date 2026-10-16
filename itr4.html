@@ -8,7 +8,7 @@
 </head>
 <body>
 
-<header class="site-header">
+<header class="site-header no-print">
   <h1>ITR-4 Computation Generator</h1>
   <p>Upload your ITR-4 JSON file to generate a computation sheet</p>
 </header>
@@ -74,41 +74,52 @@ function showError(msg) {
 
 function renderComputationITR4(data) {
   const root = data.ITR ? data.ITR.ITR4 : (data.Form_ITR4 || data);
-  const personal = root?.CreationInfo || root?.PersonalInfo || data?.PersonalInfo || {};
+  const personal = root?.PersonalInfo || {};
   
-  const firstName = personal?.AssesseeName?.FirstName || personal?.Name || '';
-  const midName = personal?.AssesseeName?.MiddleName || '';
-  const surName = personal?.AssesseeName?.SurName || '';
-  const fullName = `${firstName} ${midName} ${surName}`.trim().toUpperCase() || "N/A";
+  const firstName = personal?.AssesseeName?.FirstName || '';
+  const surName = personal?.AssesseeName?.SurNameOrOrgName || personal?.AssesseeName?.SurName || '';
+  const fullName = `${firstName} ${surName}`.trim().toUpperCase() || "N/A";
 
   const addr = personal?.Address || {};
-  const fullAddr = `${addr?.ResidenceName || ''} ${addr?.LocalityOrArea || ''} ${addr?.City || ''} - ${addr?.PinCode || ''}`.trim() || "THANJAVUR";
+  const fullAddr = `${addr?.ResidenceName || ''}, ${addr?.LocalityOrArea || ''}, ${addr?.CityOrTownOrDistrict || ''} - ${addr?.PinCode || ''}`.trim();
 
   const pan = personal?.PAN || "N/A";
-  const dob = personal?.DOB || personal?.BirthDate || "-";
-  const ay = root?.AssessmentYear || data?.AssessmentYear || "2026-2027";
+  const dob = personal?.DOB || "-";
+  const aadhaar = personal?.AadhaarCardNo || "";
+  const ay = root?.Form_ITR4?.AssessmentYear || "2026";
   const py = "2025-2026";
 
-  // Income Fields for ITR-4
-  const income = root?.ITR4_IncomeDeductions || root?.IncomeDeductions || {};
-  const turnover = Number(income?.BusProfInc?.GrossTurnover || 0);
-  const businessInc = Number(income?.BusProfInc?.ProfBusInc || income?.BusinessIncome || 0);
-  const otherInc = Number(income?.OthInc || 0);
+  // ITR-4 Income & Deductions mapping
+  const income = root?.IncomeDeductions || {};
+  const bp = root?.ScheduleBP?.PersumptiveInc44AD || {};
+  
+  const turnover = Number(bp?.GrsTotalTrnOver || 0);
+  const businessInc = Number(bp?.TotPersumptiveInc44AD || income?.IncomeFromBusinessProf || 0);
+  const otherInc = Number(income?.IncomeOthSrc || 0);
   const gti = Number(income?.GrossTotInc || 0);
   
-  const ded = income?.ChapterVIADeductions || {};
+  const ded = income?.DeductUndChapVIA || {};
   const totalDed = Number(ded?.TotalChapVIADeductions || 0);
-  const sec80C = Number(ded?.Sec80C || 0);
-  const sec80D = Number(ded?.Sec80D || 0);
+  const sec80C = Number(ded?.Section80C || 0);
+  const sec80D = Number(ded?.Section80D || 0);
 
   const totalInc = Number(income?.TotalIncome || 0);
 
-  const taxComp = root?.TaxComputation || root?.ComputationOfTax || {};
-  const taxOnInc = Number(taxComp?.TaxPayableOnTotInc || 0);
+  const taxComp = root?.TaxComputation || {};
+  const taxOnInc = Number(taxComp?.TotalTaxPayable || 0);
   const rebate = Number(taxComp?.Rebate87A || 0);
   const taxAfterRebate = Math.max(0, taxOnInc - rebate);
   const cess = Number(taxComp?.EducationCess || 0);
-  const netTax = Number(taxComp?.NetTaxLiability || 0);
+  const netTax = Number(taxComp?.NetTaxLiability || taxComp?.GrossTaxLiability || 0);
+
+  // Conditional Aadhaar row rendering (omitted if not present in file)
+  const aadhaarRow = aadhaar ? `
+        <tr>
+          <td></td><td></td><td></td>
+          <td style="padding: 3px 0;"><strong>Aadhaar No.</strong></td>
+          <td>:</td>
+          <td style="padding: 3px 0;">[Redacted]</td>
+        </tr>` : '';
 
   const outputHTML = `
     <div style="max-width: 800px; margin: 30px auto; background: #fff; padding: 40px; font-family: Arial, sans-serif; color: #000; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
@@ -133,12 +144,7 @@ function renderComputationITR4(data) {
           <td style="vertical-align: top;">:</td>
           <td style="padding: 3px 0; vertical-align: top;">${pan}</td>
         </tr>
-        <tr>
-          <td></td><td></td><td></td>
-          <td style="padding: 3px 0;"><strong>Aadhaar No.</strong></td>
-          <td>:</td>
-          <td style="padding: 3px 0;">[Aadhaar Redacted]</td>
-        </tr>
+        ${aadhaarRow}
         <tr>
           <td></td><td></td><td></td>
           <td style="padding: 3px 0;"><strong>Date of Birth</strong></td>
@@ -176,10 +182,10 @@ function renderComputationITR4(data) {
             <td style="text-align: right; padding: 4px;">${businessInc.toLocaleString('en-IN')}</td>
           </tr>
           <tr>
-            <td colspan="3" style="padding: 8px 4px 4px 4px;"><strong>■ Income from Other Sources / Salary / House Property</strong></td>
+            <td colspan="3" style="padding: 8px 4px 4px 4px;"><strong>■ Income from Other Sources</strong></td>
           </tr>
           <tr>
-            <td style="padding: 4px 4px 4px 15px;">Other Incomes / Salary / HP Income</td>
+            <td style="padding: 4px 4px 4px 15px;">Other Sources Income</td>
             <td></td>
             <td style="text-align: right; padding: 4px;">${otherInc.toLocaleString('en-IN')}</td>
           </tr>
