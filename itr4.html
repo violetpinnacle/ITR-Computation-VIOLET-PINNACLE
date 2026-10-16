@@ -115,6 +115,30 @@ function renderComputationITR4(data) {
   
   const turnover = Number(bp?.GrsTotalTrnOver || 0);
   const businessInc = Number(bp?.TotPersumptiveInc44AD || bp?.PersumptiveInc44AD8Per || income?.IncomeFromBusinessProf || 0);
+  
+  // Other Sources & Detailed Breakdowns
+  const othersIncObj = income?.OthersInc || {};
+  const othersDetails = othersIncObj?.OthersIncDtlsOthSrc || [];
+  
+  let savingsInterest = 0;
+  let otherSourcesRows = '';
+  
+  if (Array.isArray(othersDetails) && othersDetails.length > 0) {
+    othersDetails.forEach(item => {
+      const desc = item.OthSrcNatureDesc || 'Other Income';
+      const amt = Number(item.OthSrcOthAmount || 0);
+      if (desc.toUpperCase() === 'SAV' || desc.toUpperCase().includes('SAVING')) {
+        savingsInterest += amt;
+      }
+      otherSourcesRows += `
+        <tr>
+          <td style="padding: 4px 4px 4px 15px;">${desc}</td>
+          <td></td>
+          <td style="text-align: right; padding: 4px;">${amt.toLocaleString('en-IN')}</td>
+        </tr>`;
+    });
+  }
+
   const otherInc = Number(income?.IncomeOthSrc || 0);
   const gti = Number(income?.GrossTotInc || (businessInc + otherInc));
   
@@ -131,6 +155,23 @@ function renderComputationITR4(data) {
   const taxAfterRebate = Math.max(0, taxOnInc - rebate);
   const cess = Number(taxComp?.EducationCess || 0);
   const netTax = Number(taxComp?.NetTaxLiability || taxComp?.GrossTaxLiability || 0);
+
+  // Bank Details extraction from Refund section
+  const bankDetailsList = root?.Refund?.BankAccountDtls?.AddtnlBankDetails || [];
+  let bankRowsHTML = '';
+  if (Array.isArray(bankDetailsList) && bankDetailsList.length > 0) {
+    bankDetailsList.forEach(bank => {
+      bankRowsHTML += `
+        <tr>
+          <td style="padding: 4px; border-bottom: 1px solid #eee;">${bank.BankName || 'N/A'}</td>
+          <td style="padding: 4px; border-bottom: 1px solid #eee;">${bank.BankAccountNo || 'N/A'}</td>
+          <td style="padding: 4px; border-bottom: 1px solid #eee;">${bank.IFSCCode || 'N/A'}</td>
+          <td style="padding: 4px; border-bottom: 1px solid #eee;">${bank.AccountType || 'SB'}</td>
+        </tr>`;
+    });
+  } else {
+    bankRowsHTML = `<tr><td colspan="4" style="padding: 6px; text-align: center; color: #666;">No bank details available</td></tr>`;
+  }
 
   const outputHTML = `
     <div style="max-width: 800px; margin: 30px auto; background: #fff; padding: 40px; font-family: Arial, sans-serif; color: #000; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
@@ -194,11 +235,12 @@ function renderComputationITR4(data) {
           <tr>
             <td colspan="3" style="padding: 8px 4px 4px 4px;"><strong>■ Income from Other Sources</strong></td>
           </tr>
+          ${otherSourcesRows || `
           <tr>
             <td style="padding: 4px 4px 4px 15px;">Other Sources Income</td>
             <td></td>
             <td style="text-align: right; padding: 4px;">${otherInc.toLocaleString('en-IN')}</td>
-          </tr>
+          </tr>`}
           <tr>
             <td style="padding: 8px 4px; font-weight: bold;">Gross Total Income</td>
             <td></td>
@@ -256,6 +298,24 @@ function renderComputationITR4(data) {
           </tr>
         </tbody>
       </table>
+
+      <!-- Bank Accounts Section matching ITR-1 format -->
+      <div style="margin-top: 25px;">
+        <div style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Bank Accounts in India</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <thead>
+            <tr style="background-color: #f9f9f9;">
+              <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: left; padding: 5px;">Bank Name</th>
+              <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: left; padding: 5px;">Account No.</th>
+              <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: left; padding: 5px;">IFS Code</th>
+              <th style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: left; padding: 5px;">Type of Account</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${bankRowsHTML}
+          </tbody>
+        </table>
+      </div>
 
       <div style="display: flex; justify-content: space-between; margin-top: 40px; font-size: 13px;">
         <div>Date: </div>
