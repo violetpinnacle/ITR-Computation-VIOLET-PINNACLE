@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITR-4 Computation Generator - Violet Pinnacle</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
+        header { background-color: #1a2b4c; color: white; text-align: center; padding: 30px 20px; }
+        header h1 { margin: 0; font-size: 24px; }
+        header p { margin: 10px 0 0; color: #b0c4de; font-size: 14px; }
+        .container { max-width: 800px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .upload-box { border: 2px dashed #b0c4de; padding: 40px; border-radius: 6px; background: #fafbfc; text-align: center; margin-top: 20px; }
+        input[type="file"] { margin: 15px 0; }
+        .back-link { display: inline-block; margin-top: 20px; color: #1a2b4c; text-decoration: none; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
+        
+        /* Computation Sheet Styles */
+        #computation-result { display: none; margin-top: 30px; }
+        .comp-table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 25px; }
+        .comp-table th, .comp-table td { border: 1px solid #ddd; padding: 10px; font-size: 14px; }
+        .comp-table th { background-color: #1a2b4c; color: white; text-align: left; }
+        .comp-table td.amount { text-align: right; }
+        .print-btn { background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; display: block; width: 100%; font-size: 16px; margin-top: 20px; text-align: center; }
+        .print-btn:hover { background-color: #218838; }
+
+        @media print {
+            body { background: white; }
+            .container { box-shadow: none; margin: 0; max-width: 100%; padding: 0; }
+            .upload-box, .print-btn, .back-link, header { display: none; }
+            #computation-result { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ITR-4 Computation Generator</h1>
+        <p>Violet Pinnacle — Tax & Accounting Desk</p>
+    </header>
+
+    <div class="container">
+        <div id="upload-section">
+            <h3>Select your ITR-4 JSON file</h3>
+            <p style="color: #666; font-size: 13px;">Upload the JSON file exported from the Income Tax e-Filing portal or offline utility.</p>
+            <div class="upload-box">
+                <input type="file" id="jsonFile" accept=".json">
+            </div>
+        </div>
+
+        <!-- Generated Computation Sheet Preview -->
+        <div id="computation-result">
+            <h2 style="text-align: center; color: #1a2b4c; margin-bottom: 5px;">VIOLET PINNACLE</h2>
+            <p style="text-align: center; font-size: 12px; color: #555; margin-top: 0;">Tax, Accounting & GST Consulting | Thiruvaiyaru, Thanjavur</p>
+            <h3 style="text-align: center; color: #333; margin-top: 15px;">Tax Computation Statement (AY 2026-27)</h3>
+            <hr style="border: 0; border-top: 1px solid #ccc; margin: 20px 0;">
+            
+            <h4>1. Assessee Personal Details</h4>
+            <table class="comp-table">
+                <tr><td><strong>Name:</strong></td><td id="res-name">-</td></tr>
+                <tr><td><strong>PAN:</strong></td><td id="res-pan">-</td></tr>
+                <tr><td><strong>Assessment Year:</strong></td><td id="res-ay">2026-27</td></tr>
+            </table>
+
+            <h4>2. Computation of Income (Presumptive Business / Profession)</h4>
+            <table class="comp-table">
+                <tr><th>Head of Income</th><th>Amount (₹)</th></tr>
+                <tr><td>Income from Business / Profession (Sec 44AD / 44ADA)</td><td id="res-business" class="amount">0</td></tr>
+                <tr><td>Income from Salary / Other Sources / House Property</td><td id="res-other" class="amount">0</td></tr>
+                <tr><td><strong>Gross Total Income (GTI)</strong></td><td id="res-gti" class="amount"><strong>0</strong></td></tr>
+                <tr><td>Less: Chapter VIA Deductions (80C, 80D, etc.)</td><td id="res-deductions" class="amount">0</td></tr>
+                <tr><td><strong>Total Taxable Income</strong></td><td id="res-total-income" class="amount"><strong>0</strong></td></tr>
+            </table>
+
+            <h4>3. Tax Computation & Payable</h4>
+            <table class="comp-table">
+                <tr><td>Tax on Total Income</td><td id="res-tax" class="amount">0</td></tr>
+                <tr><td>Less: Rebate under Section 87A</td><td id="res-rebate" class="amount">0</td></tr>
+                <tr><td>Add: Health & Education Cess (4%)</td><td id="res-cess" class="amount">0</td></tr>
+                <tr><td><strong>Net Tax Payable / (Refundable)</strong></td><td id="res-net-tax" class="amount"><strong>0</strong></td></tr>
+            </table>
+
+            <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+        </div>
+
+        <div>
+            <a href="index.html" class="back-link">← Back to ITR Type Selection</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('jsonFile').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                    populateITR4Data(jsonData);
+                    
+                    // Switch UI views
+                    document.getElementById('upload-section').style.display = 'none';
+                    document.getElementById('computation-result').style.display = 'block';
+                } catch (error) {
+                    alert('Invalid JSON file. Please upload a valid ITR-4 JSON exported from the portal.');
+                    console.error(error);
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        function populateITR4Data(data) {
+            // Flexible path resolver for Income Tax JSON schemas
+            const root = data.ITR ? data.ITR.ITR4 : (data.Form_ITR4 || data);
+            
+            // Personal Info
+            const personal = root?.CreationInfo || root?.PersonalInfo || data?.PersonalInfo || {};
+            document.getElementById('res-name').innerText = personal?.AssesseeName?.FirstName ? 
+                `${personal.AssesseeName.FirstName} ${personal.AssesseeName.MiddleName || ''} ${personal.AssesseeName.SurName || ''}` : 
+                (personal?.Name || "N/A");
+            document.getElementById('res-pan').innerText = personal?.PAN || "N/A";
+
+            // Financial Fields extraction with fallback defaults
+            const income = root?.ITR4_IncomeDeductions || root?.IncomeDeductions || {};
+            
+            const businessInc = income?.BusProfInc?.GrossTurnover || income?.BusinessIncome || 0;
+            const otherInc = income?.OthInc || 0;
+            const gti = income?.GrossTotInc || 0;
+            const deductions = income?.ChapterVIADeductions?.TotalChapVIADeductions || 0;
+            const totalInc = income?.TotalIncome || 0;
+            
+            const taxComp = root?.TaxComputation || root?.ComputationOfTax || {};
+            const netTax = taxComp?.NetTaxLiability || 0;
+
+            document.getElementById('res-business').innerText = Number(businessInc).toLocaleString('en-IN');
+            document.getElementById('res-other').innerText = Number(otherInc).toLocaleString('en-IN');
+            document.getElementById('res-gti').innerText = Number(gti).toLocaleString('en-IN');
+            document.getElementById('res-deductions').innerText = Number(deductions).toLocaleString('en-IN');
+            document.getElementById('res-total-income').innerText = Number(totalInc).toLocaleString('en-IN');
+            document.getElementById('res-net-tax').innerText = Number(netTax).toLocaleString('en-IN');
+        }
+    </script>
+</body>
+</html>
