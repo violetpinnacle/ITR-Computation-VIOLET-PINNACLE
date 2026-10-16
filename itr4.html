@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ITR-4 Computation Generator - Violet Pinnacle</title>
+<title>ITR-4 Computation Generator</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -88,7 +88,7 @@ function renderComputationITR4(data) {
     addr?.LocalityOrArea,
     addr?.CityOrTownOrDistrict,
     addr?.PinCode ? `- ${addr.PinCode}` : ''
-  ].filter(Boolean).join(', ') || "THANJAVUR";
+  ].filter(Boolean).join(', ') || "";
 
   const pan = personal?.PAN || "N/A";
   const dob = personal?.DOB || "-";
@@ -259,7 +259,7 @@ function renderComputationITR4(data) {
 
       <div style="display: flex; justify-content: space-between; margin-top: 40px; font-size: 13px;">
         <div>Date: </div>
-        <div style="text-align: right;"><strong>(VIOLET PINNACLE)</strong></div>
+        <div style="text-align: right;"><strong>(${fullName})</strong></div>
       </div>
 
       <div style="text-align: center; margin-top: 30px;" class="no-print">
