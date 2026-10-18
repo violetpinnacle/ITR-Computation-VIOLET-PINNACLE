@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,6 +8,12 @@
 <style>
 @page {
   margin: 0;
+  size: auto;
+}
+
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 </style>
 </head>
@@ -81,7 +86,7 @@ function showError(msg) {
 function renderComputationITR4(data) {
   const root = data.ITR ? data.ITR.ITR4 : (data.Form_ITR4 || data);
   const personal = root?.PersonalInfo || {};
-  
+
   const firstName = personal?.AssesseeName?.FirstName || '';
   const surName = personal?.AssesseeName?.SurNameOrOrgName || personal?.AssesseeName?.SurName || '';
   const fullName = `${firstName} ${surName}`.trim().toUpperCase() || "N/A";
@@ -98,7 +103,7 @@ function renderComputationITR4(data) {
 
   const pan = personal?.PAN || "N/A";
   const dob = personal?.DOB || "-";
-  
+
   // Extract Assessment Year dynamically with fallback
   let ay = "2026-2027";
   const rawAY = root?.Form_ITR4?.AssessmentYear || root?.CreationInfo?.JSONCreationDate;
@@ -118,24 +123,34 @@ function renderComputationITR4(data) {
   // Income & Deductions Mapping
   const income = root?.IncomeDeductions || {};
   const bp = root?.ScheduleBP?.PersumptiveInc44AD || {};
-  
+
   const turnover = Number(bp?.GrsTotalTrnOver || 0);
   const businessInc = Number(bp?.TotPersumptiveInc44AD || bp?.PersumptiveInc44AD8Per || income?.IncomeFromBusinessProf || 0);
-  
+
   // Other Sources & Detailed Breakdowns
   const othersIncObj = income?.OthersInc || {};
   const othersDetails = othersIncObj?.OthersIncDtlsOthSrc || [];
-  
+
   let savingsInterest = 0;
   let otherSourcesRows = '';
-  
+
   if (Array.isArray(othersDetails) && othersDetails.length > 0) {
     othersDetails.forEach(item => {
-      const desc = item.OthSrcNatureDesc || 'Other Income';
+      const sourceCode = (item.OthSrcNatureDesc || '').toUpperCase();
+
+      const descriptions = {
+        'DIV': 'Dividend Income',
+        'SAV': 'Savings Bank Interest',
+        'TAX': 'Interest on Income Tax Refund'
+      };
+
+      const desc = descriptions[sourceCode] || item.OthSrcNatureDesc || 'Other Income';
       const amt = Number(item.OthSrcOthAmount || 0);
+
       if (desc.toUpperCase() === 'SAV' || desc.toUpperCase().includes('SAVING')) {
         savingsInterest += amt;
       }
+
       otherSourcesRows += `
         <tr>
           <td style="padding: 4px 4px 4px 15px;">${desc}</td>
@@ -147,7 +162,7 @@ function renderComputationITR4(data) {
 
   const otherInc = Number(income?.IncomeOthSrc || 0);
   const gti = Number(income?.GrossTotInc || (businessInc + otherInc));
-  
+
   const ded = income?.DeductUndChapVIA || income?.UsrDeductUndChapVIA || {};
   const totalDed = Number(ded?.TotalChapVIADeductions || 0);
   const sec80C = Number(ded?.Section80C || 0);
