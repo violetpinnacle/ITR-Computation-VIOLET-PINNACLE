@@ -6,76 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ITR-4 Computation Generator</title>
 <link rel="stylesheet" href="css/style.css">
-
 <style>
 @page {
-  size: A4 portrait;
-  margin: 5mm;
-}
-
-@media print {
-  html, body {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    height: auto !important;
-    font-size: 10px !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  .no-print {
-    display: none !important;
-  }
-
-  #outputSection {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-  }
-
-  #outputSection > div {
-    max-width: none !important;
-    width: auto !important;
-    margin: 0 !important;
-    padding: 5mm !important;
-    box-shadow: none !important;
-    font-size: 10px !important;
-    line-height: 1.05 !important;
-    box-sizing: border-box !important;
-  }
-
-  #outputSection table {
-    font-size: 10px !important;
-    line-height: 1.05 !important;
-  }
-
-  #outputSection table[style*="margin-bottom"] {
-    margin-bottom: 8px !important;
-  }
-
-  #outputSection td,
-  #outputSection th {
-    line-height: 1.05 !important;
-  }
-
-  #outputSection div[style*="margin-top: 25px"] {
-    margin-top: 10px !important;
-  }
-
-  #outputSection div[style*="margin-top: 40px"] {
-    margin-top: 15px !important;
-  }
-
-  #outputSection div[style*="margin-top: 30px"] {
-    display: none !important;
-  }
-
-  #outputSection table,
-  #outputSection tr {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
+  margin: 0;
 }
 </style>
 </head>
@@ -148,7 +81,7 @@ function showError(msg) {
 function renderComputationITR4(data) {
   const root = data.ITR ? data.ITR.ITR4 : (data.Form_ITR4 || data);
   const personal = root?.PersonalInfo || {};
-
+  
   const firstName = personal?.AssesseeName?.FirstName || '';
   const surName = personal?.AssesseeName?.SurNameOrOrgName || personal?.AssesseeName?.SurName || '';
   const fullName = `${firstName} ${surName}`.trim().toUpperCase() || "N/A";
@@ -165,7 +98,7 @@ function renderComputationITR4(data) {
 
   const pan = personal?.PAN || "N/A";
   const dob = personal?.DOB || "-";
-
+  
   // Extract Assessment Year dynamically with fallback
   let ay = "2026-2027";
   const rawAY = root?.Form_ITR4?.AssessmentYear || root?.CreationInfo?.JSONCreationDate;
@@ -185,17 +118,17 @@ function renderComputationITR4(data) {
   // Income & Deductions Mapping
   const income = root?.IncomeDeductions || {};
   const bp = root?.ScheduleBP?.PersumptiveInc44AD || {};
-
+  
   const turnover = Number(bp?.GrsTotalTrnOver || 0);
   const businessInc = Number(bp?.TotPersumptiveInc44AD || bp?.PersumptiveInc44AD8Per || income?.IncomeFromBusinessProf || 0);
-
+  
   // Other Sources & Detailed Breakdowns
   const othersIncObj = income?.OthersInc || {};
   const othersDetails = othersIncObj?.OthersIncDtlsOthSrc || [];
-
+  
   let savingsInterest = 0;
   let otherSourcesRows = '';
-
+  
   if (Array.isArray(othersDetails) && othersDetails.length > 0) {
     othersDetails.forEach(item => {
       const desc = item.OthSrcNatureDesc || 'Other Income';
@@ -214,7 +147,7 @@ function renderComputationITR4(data) {
 
   const otherInc = Number(income?.IncomeOthSrc || 0);
   const gti = Number(income?.GrossTotInc || (businessInc + otherInc));
-
+  
   const ded = income?.DeductUndChapVIA || income?.UsrDeductUndChapVIA || {};
   const totalDed = Number(ded?.TotalChapVIADeductions || 0);
   const sec80C = Number(ded?.Section80C || 0);
